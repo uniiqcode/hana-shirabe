@@ -36,6 +36,51 @@
   $("back").addEventListener("click", function () { show(result); });
   $("crop-ok").addEventListener("click", onCropOk);
   $("crop-cancel").addEventListener("click", reset);
+  setupGuide();
+
+  // 右上の i: ホーム画面に追加する方法と、住所のコピー
+  function setupGuide() {
+    var guide = $("guide"), urlInput = $("app-url"), msg = $("copy-msg");
+    function open() {
+      msg.textContent = "";
+      if (guide.showModal) guide.showModal(); else guide.setAttribute("open", "");
+    }
+    function close() {
+      if (guide.close) guide.close(); else guide.removeAttribute("open");
+    }
+    $("info-btn").addEventListener("click", open);
+    $("guide-close").addEventListener("click", close);
+    $("guide-ok").addEventListener("click", close);
+    // 外側（暗いところ）を押しても閉じる
+    guide.addEventListener("click", function (e) { if (e.target === guide) close(); });
+    $("copy-url").addEventListener("click", function () {
+      copyText(urlInput.value).then(function (ok) {
+        msg.textContent = ok ? "コピーしました。ブラウザの住所の欄に貼り付けてください。" : "コピーできませんでした。住所を長押ししてコピーしてください。";
+        if (!ok) { urlInput.focus(); urlInput.select(); }
+      });
+    });
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return legacyCopy(text); });
+    }
+    return Promise.resolve(legacyCopy(text));
+  }
+
+  // 古い端末・アプリ内ブラウザ向け
+  function legacyCopy(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed"; ta.style.top = "0"; ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select(); ta.setSelectionRange(0, text.length);
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
 
   function show(section) {
     picker.hidden = section !== picker;
