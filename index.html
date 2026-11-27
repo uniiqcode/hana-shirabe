@@ -3,23 +3,37 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>花しらべ</title>
-<meta name="description" content="写真やカメラから、花の名前を調べます。">
+<title>花しらべ｜花を撮るだけで、名前がわかる</title>
+<meta name="description" content="花の写真を撮るだけで、名前の候補がわかる無料のウェブアプリ。えらんだ名前を入れた画像を作って、写真に保存したり SNS で共有したりできます。">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="uniiqcode">
+<meta property="og:title" content="花しらべ｜花を撮るだけで、名前がわかる">
+<meta property="og:description" content="花の写真を撮るだけで、名前の候補がわかる無料のウェブアプリ。えらんだ名前を入れた画像を作って、写真に保存したり SNS で共有したりできます。">
+<meta property="og:url" content="https://uniiqcode.com/hana-shirabe/">
+<meta property="og:image" content="https://uniiqcode.com/hana-shirabe/icons/ogp.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="花しらべ 花を撮るだけで、名前がわかる。">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://uniiqcode.com/hana-shirabe/">
 <meta name="theme-color" content="#f5efe3">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icons/icon-192.png" sizes="192x192">
+<link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="icons/favicon-16.png" sizes="16x16" type="image/png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="花しらべ">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 <main class="app">
   <header class="head">
     <h1>花しらべ</h1>
-    <p class="lead">花の写真から、名前を調べます</p>
+    <p class="lead">花を撮るだけで、名前がわかる</p>
   </header>
 
   <section class="picker" id="picker">
@@ -32,6 +46,13 @@
       <span>写真から選ぶ</span>
     </label>
     <p class="tip">花を画面の真ん中に、大きく写すと当たりやすくなります。</p>
+
+    <div class="about">
+      <h2>花しらべについて</h2>
+      <p>道ばたや庭で見つけた花を、スマホで撮るだけで名前を調べられます。</p>
+      <p>名前の候補から一つえらぶと、花の写真の下に名前の入った画像ができます。写真に保存したり、SNS で共有したりできます。</p>
+      <p>アプリを入れる必要はありません。ホーム画面に追加すると、アプリのように使えます。</p>
+    </div>
   </section>
 
   <section class="result" id="result" hidden>
