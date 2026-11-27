@@ -76,7 +76,22 @@ body {
 .cand-sub i { font-family: "Shippori Mincho", serif; }
 .bar { height: 4px; background: var(--line); border-radius: 2px; margin-top: 10px; overflow: hidden; }
 .bar span { display: block; height: 100%; background: var(--bar); }
+.cand { cursor: pointer; -webkit-tap-highlight-color: transparent; position: relative; }
+.cand[aria-checked="true"] { border: 2px solid var(--accent); padding: 13px 15px; }
+.cand[aria-checked="true"]::after {
+  content: "えらんだ名前"; position: absolute; top: -10px; left: 14px;
+  background: var(--accent); color: var(--accent-ink);
+  font-size: 0.7rem; padding: 0 8px; border-radius: 8px; line-height: 1.6;
+}
 .cand-link { display: inline-block; margin-top: 8px; font-size: 0.85rem; color: var(--accent); }
+
+.card { display: flex; flex-direction: column; gap: 12px; }
+.card-img {
+  width: 100%; aspect-ratio: 5 / 7; display: block;
+  border-radius: 10px; box-shadow: 0 2px 12px rgba(43, 38, 32, 0.15);
+  background: var(--card);
+  -webkit-touch-callout: default;
+}
 
 .foot { margin-top: auto; padding-top: 32px; color: var(--sub); font-size: 0.78rem; text-align: center; }
 .foot p { margin: 4px 0; }
