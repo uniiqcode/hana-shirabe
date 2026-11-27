@@ -49,3 +49,36 @@ test("5:7 の寸法と、真ん中の正方形", () => {
   assert.deepEqual(H.centerSquare(4000, 3000), { sx: 500, sy: 0, size: 3000 });
   assert.deepEqual(H.centerSquare(3000, 4000), { sx: 0, sy: 500, size: 3000 });
 });
+
+test("写真は左右と上に余白なし", () => {
+  assert.equal(H.CARD.photo, H.CARD.width);
+  assert.ok(H.CARD.height - H.CARD.photo >= 500); // 下に文字の帯
+});
+
+const close = (a, b) => assert.ok(Math.abs(a - b) < 1e-9, `${a} != ${b}`);
+
+test("はじめの表示は枠をちょうど埋めて真ん中", () => {
+  const v = H.initialView(4000, 3000, 300); // 横長
+  close(v.scale, 0.1);
+  close(v.x, -50); close(v.y, 0);
+  const r = H.cropRect(v, 300);
+  close(r.sx, 500); close(r.sy, 0); close(r.size, 3000);
+});
+
+test("小さくしすぎ・動かしすぎは、すき間ができない所で止まる", () => {
+  const v = H.clampView({ scale: 0.01, x: 100, y: 100 }, 4000, 3000, 300);
+  close(v.scale, 0.1); close(v.x, 0); close(v.y, 0);
+  const v2 = H.clampView({ scale: 0.1, x: -9999, y: -9999 }, 4000, 3000, 300);
+  close(v2.x, -100); close(v2.y, 0);
+  const v3 = H.clampView({ scale: 99, x: 0, y: 0 }, 4000, 3000, 300, 6);
+  close(v3.scale, 0.6);
+});
+
+test("つまんだ点を中心に拡大する", () => {
+  const v0 = H.initialView(3000, 3000, 300); // scale 0.1, x=y=0
+  const v = H.zoomAt(v0, 2, 150, 150, 3000, 3000, 300);
+  close(v.scale, 0.2);
+  close(v.x, -150); close(v.y, -150); // 真ん中は真ん中のまま
+  const r = H.cropRect(v, 300);
+  close(r.sx, 750); close(r.size, 1500);
+});

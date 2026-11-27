@@ -27,7 +27,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 <main class="app">
@@ -45,7 +45,7 @@
       <input type="file" accept="image/*" id="library" hidden>
       <span>写真から選ぶ</span>
     </label>
-    <p class="tip">花を画面の真ん中に、大きく写すと当たりやすくなります。</p>
+    <p class="tip">撮ったあとで、花が大きく写るように拡大・移動できます。</p>
 
     <div class="about">
       <h2>花しらべについて</h2>
@@ -53,6 +53,20 @@
       <p>名前の候補から一つえらぶと、花の写真の下に名前の入った画像ができます。写真に保存したり、SNS で共有したりできます。</p>
       <p>アプリを入れる必要はありません。ホーム画面に追加すると、アプリのように使えます。</p>
     </div>
+  </section>
+
+  <section class="crop" id="crop" hidden>
+    <p class="tip">2本の指で拡大・縮小、1本の指で動かして、花を枠にきれいにおさめてください。</p>
+    <div class="crop-frame" id="crop-frame">
+      <canvas id="crop-canvas" aria-label="花の写真。拡大・縮小・移動ができます"></canvas>
+    </div>
+    <div class="zoom">
+      <button class="zoom-btn" id="zoom-out" type="button" aria-label="縮小">－</button>
+      <input type="range" id="zoom" min="0" max="1000" value="0" aria-label="拡大の大きさ">
+      <button class="zoom-btn" id="zoom-in" type="button" aria-label="拡大">＋</button>
+    </div>
+    <button class="btn btn-main" id="crop-ok" type="button">この範囲で調べる</button>
+    <button class="btn btn-sub" id="crop-cancel" type="button">写真をえらびなおす</button>
   </section>
 
   <section class="result" id="result" hidden>
@@ -80,7 +94,7 @@
   </footer>
 </main>
 <script src="config.js?v=2"></script>
-<script src="core.js?v=1"></script>
-<script src="app.js?v=2"></script>
+<script src="core.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>

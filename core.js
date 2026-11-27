@@ -41,9 +41,43 @@
     };
   }
 
-  // 5:7 の画像の寸法（花の写真は上の正方形）
+  // 5:7 の画像の寸法。花の写真は上の正方形で、左右と上に余白を作らない。文字は下の帯に入れる
   var CARD = { width: 1500, height: 2100, margin: 90 };
-  CARD.photo = CARD.width - CARD.margin * 2;
+  CARD.photo = CARD.width;
+
+  // ---- 写真の拡大・縮小・移動（正方形の枠 size に、写真 w×h をおさめる） ----
+
+  // 枠をすき間なく埋める、いちばん小さい倍率
+  function coverScale(w, h, size) {
+    return Math.max(size / w, size / h);
+  }
+
+  // 倍率と位置を、枠にすき間ができない範囲に収める（x, y は写真の左上の位置）
+  function clampView(v, w, h, size, maxZoom) {
+    var min = coverScale(w, h, size);
+    var scale = Math.min(Math.max(v.scale, min), min * (maxZoom || 6));
+    var x = Math.min(0, Math.max(size - w * scale, v.x));
+    var y = Math.min(0, Math.max(size - h * scale, v.y));
+    return { scale: scale, x: x, y: y };
+  }
+
+  // はじめの表示: 枠をちょうど埋めて、真ん中に置く
+  function initialView(w, h, size) {
+    var scale = coverScale(w, h, size);
+    return { scale: scale, x: (size - w * scale) / 2, y: (size - h * scale) / 2 };
+  }
+
+  // 点 (px, py) を中心に倍率を factor 倍にする（指でつまむ・ホイール）
+  function zoomAt(v, factor, px, py, w, h, size, maxZoom) {
+    var ix = (px - v.x) / v.scale, iy = (py - v.y) / v.scale; // 写真の上の点
+    var scale = v.scale * factor;
+    return clampView({ scale: scale, x: px - ix * scale, y: py - iy * scale }, w, h, size, maxZoom);
+  }
+
+  // 枠の中に見えている範囲を、元の写真の座標で返す
+  function cropRect(v, size) {
+    return { sx: -v.x / v.scale, sy: -v.y / v.scale, size: size / v.scale };
+  }
 
   // 写真の真ん中から正方形を切り出す範囲
   function centerSquare(w, h) {
@@ -58,5 +92,10 @@
     cardLines: cardLines,
     CARD: CARD,
     centerSquare: centerSquare,
+    coverScale: coverScale,
+    clampView: clampView,
+    initialView: initialView,
+    zoomAt: zoomAt,
+    cropRect: cropRect,
   };
 })(typeof window !== "undefined" ? window : globalThis);
