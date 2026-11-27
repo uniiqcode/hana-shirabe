@@ -5,7 +5,7 @@
   var H = window.HanaCore;
   var LOW_SCORE = 0.2; // これより低いと「撮り直し」をすすめる
   var cfg = window.HANA_CONFIG || {};
-  // 住所が無い時と、?demo を付けて開いた時は「お試し表示」
+  // URLが無い時と、?demo を付けて開いた時は「お試し表示」
   var DEMO = !cfg.apiUrl || /[?&]demo\b/.test(location.search);
 
   var COLORS = { bg: "#f5efe3", ink: "#2b2620", sub: "#6f665a", line: "#e2d8c6", accent: "#8c3b4a", bar: "#c9a96b" };
@@ -36,6 +36,51 @@
   $("back").addEventListener("click", function () { show(result); });
   $("crop-ok").addEventListener("click", onCropOk);
   $("crop-cancel").addEventListener("click", reset);
+  setupGuide();
+
+  // 右上の i: ホーム画面に追加する方法と、URLのコピー
+  function setupGuide() {
+    var guide = $("guide"), urlInput = $("app-url"), msg = $("copy-msg");
+    function open() {
+      msg.textContent = "";
+      if (guide.showModal) guide.showModal(); else guide.setAttribute("open", "");
+    }
+    function close() {
+      if (guide.close) guide.close(); else guide.removeAttribute("open");
+    }
+    $("info-btn").addEventListener("click", open);
+    $("guide-close").addEventListener("click", close);
+    $("guide-ok").addEventListener("click", close);
+    // 外側（暗いところ）を押しても閉じる
+    guide.addEventListener("click", function (e) { if (e.target === guide) close(); });
+    $("copy-url").addEventListener("click", function () {
+      copyText(urlInput.value).then(function (ok) {
+        msg.textContent = ok ? "コピーしました。ブラウザのURLの欄に貼り付けてください。" : "コピーできませんでした。URLを長押ししてコピーしてください。";
+        if (!ok) { urlInput.focus(); urlInput.select(); }
+      });
+    });
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return legacyCopy(text); });
+    }
+    return Promise.resolve(legacyCopy(text));
+  }
+
+  // 古い端末・アプリ内ブラウザ向け
+  function legacyCopy(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed"; ta.style.top = "0"; ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select(); ta.setSelectionRange(0, text.length);
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
 
   function show(section) {
     picker.hidden = section !== picker;

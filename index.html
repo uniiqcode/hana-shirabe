@@ -27,10 +27,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 <main class="app">
+  <button class="info-btn" id="info-btn" type="button" aria-label="ホーム画面に追加する方法" aria-haspopup="dialog">i</button>
   <header class="head">
     <h1>花しらべ</h1>
     <p class="lead">花を撮るだけで、名前がわかる</p>
@@ -51,7 +52,7 @@
       <h2>花しらべについて</h2>
       <p>道ばたや庭で見つけた花を、スマホで撮るだけで名前を調べられます。</p>
       <p>名前の候補から一つえらぶと、花の写真の下に名前の入った画像ができます。写真に保存したり、SNS で共有したりできます。</p>
-      <p>アプリを入れる必要はありません。ホーム画面に追加すると、アプリのように使えます。</p>
+      <p>アプリを入れる必要はありません。ホーム画面に追加すると、アプリのように使えます。追加のしかたは、右上の <span class="info-mark" aria-hidden="true">i</span> を押すと出ます。</p>
     </div>
   </section>
 
@@ -93,8 +94,41 @@
     <p class="credit">Powered by Pl@ntNet ・ <a href="https://uniiqcode.com/">uniiqcode</a></p>
   </footer>
 </main>
+
+<dialog class="guide" id="guide" aria-labelledby="guide-title">
+  <div class="guide-body">
+    <button class="guide-close" id="guide-close" type="button" aria-label="閉じる">×</button>
+    <h2 id="guide-title">ホーム画面に追加するには</h2>
+    <p>LINE・Instagram・X などのアプリからリンクを開いた時は、その画面からは追加できません。下のURLをコピーしてから、<strong>Chrome</strong>（Android）か <strong>Safari</strong>（iPhone）を開き直してください。</p>
+    <div class="url-box">
+      <input id="app-url" type="text" value="https://uniiqcode.com/hana-shirabe/" readonly aria-label="花しらべのURL">
+      <button class="btn btn-main copy-btn" id="copy-url" type="button">URLをコピー</button>
+    </div>
+    <p class="copy-msg" id="copy-msg" role="status" aria-live="polite"></p>
+
+    <h3>Android（Chrome）</h3>
+    <ol>
+      <li>Chrome を開き、画面の上のURLの欄を押して、コピーしたURLを貼り付けて開く</li>
+      <li>右上の「︙」（点が3つ）を押す</li>
+      <li>「ホーム画面に追加」を押す（「アプリをインストール」と出ることもあります）</li>
+      <li>「追加」（または「インストール」）を押す</li>
+    </ol>
+
+    <h3>iPhone（Safari）</h3>
+    <ol>
+      <li>Safari を開き、URLの欄を押して、コピーしたURLを貼り付けて開く</li>
+      <li>共有ボタン（四角から上向きの矢印）を押す。見当たらない時は、URLの欄の横の「…」を押すと出ます</li>
+      <li>下にずらして「ホーム画面に追加」を押す</li>
+      <li>右上の「追加」を押す</li>
+    </ol>
+
+    <p class="guide-end">ホーム画面にできた「花しらべ」のアイコンから、いつでも開けます。</p>
+    <button class="btn btn-sub" id="guide-ok" type="button">閉じる</button>
+  </div>
+</dialog>
+
 <script src="config.js?v=2"></script>
 <script src="core.js?v=2"></script>
-<script src="app.js?v=3"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>

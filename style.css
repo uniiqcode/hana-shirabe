@@ -25,6 +25,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 .head { text-align: center; margin-bottom: 28px; }
 .head h1 {
@@ -128,3 +129,54 @@ body {
 .foot a { color: inherit; }
 .demo { color: var(--accent); }
 .credit { margin-top: 10px !important; }
+
+/* 右上の i: ホーム画面に追加する方法 */
+.info-btn {
+  position: absolute; top: calc(env(safe-area-inset-top) + 12px); right: 12px;
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1.5px solid var(--accent); background: var(--card); color: var(--accent);
+  font: italic 700 1.1rem/1 Georgia, "Times New Roman", serif;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; padding: 0; -webkit-tap-highlight-color: transparent;
+}
+.info-btn:active { opacity: 0.7; }
+.info-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.3em; height: 1.3em; border-radius: 50%;
+  border: 1px solid var(--accent); color: var(--accent);
+  font: italic 700 0.85em/1 Georgia, serif; vertical-align: 0.05em;
+}
+.guide {
+  width: min(440px, calc(100vw - 24px)); max-height: calc(100dvh - 24px);
+  padding: 0; border: none; border-radius: 16px;
+  background: var(--card); color: var(--ink);
+  box-shadow: 0 10px 40px rgba(43, 38, 32, 0.25);
+  overscroll-behavior: contain;
+}
+.guide::backdrop { background: rgba(43, 38, 32, 0.45); }
+.guide-body { position: relative; padding: 22px 20px 20px; font-size: 0.92rem; }
+.guide h2 {
+  font-family: "Shippori Mincho", serif; font-weight: 700;
+  font-size: 1.2rem; margin: 0 36px 10px 0;
+}
+.guide h3 {
+  font-size: 1rem; margin: 18px 0 4px; padding-bottom: 4px;
+  border-bottom: 1px solid var(--line); color: var(--accent);
+}
+.guide p { margin: 6px 0; }
+.guide ol { margin: 6px 0 0; padding-left: 1.4em; }
+.guide li { margin: 4px 0; }
+.guide-close {
+  position: absolute; top: 10px; right: 10px;
+  width: 36px; height: 36px; border: none; background: transparent;
+  font-size: 1.6rem; line-height: 1; color: var(--sub); cursor: pointer;
+}
+.url-box { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.url-box input {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--bg); color: var(--ink); font-size: 16px; font-family: inherit;
+}
+.copy-btn { min-height: 48px; font-size: 1rem; }
+.copy-msg { min-height: 1.4em; text-align: center; color: var(--accent); font-weight: 600; margin: 4px 0 0 !important; }
+.guide-end { margin-top: 16px !important; color: var(--sub); }
+.guide .btn { margin-top: 10px; }
