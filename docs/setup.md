@@ -24,9 +24,12 @@ niisan.tv で使っている Pl@ntNet のアカウントをそのまま使う（
    - 名前: `PLANTNET_API_KEY`
    - 値: 手順1のキー
    - 「デプロイ」を押す
-7. 画面に出る住所（`https://hana-shirabe.〜.workers.dev`）をねえさんに伝える。ねえさんが `config.js` に入れる
+7. 「Domains」→「Add Domain」で `hana-api.uniiqcode.com` を付ける（workers.dev の住所にはアカウント名が入るため、ページには uniiqcode.com の住所を使う）
+8. その住所をねえさんに伝える。ねえさんが `config.js` に入れる
 
-確かめ方: その住所をブラウザで開いて「hana-shirabe relay: ok」と出れば中継は動いている。
+2026-11-28 に済み: 中継 `hana-shirabe`、住所 `https://hana-api.uniiqcode.com`。
+
+確かめ方: 中継の住所をブラウザで開いて「hana-shirabe relay: ok」と出れば中継は動いている。
 
 画面の名前は Cloudflare の変更で少し違うことがある。迷ったらその画面を写真で送ってもらえれば案内する。
 
