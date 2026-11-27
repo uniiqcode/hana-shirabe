@@ -3,23 +3,27 @@
   "use strict";
 
   var H = window.HanaCore;
-  var MAX_SIDE = 1280; // 送る写真の長い辺（px）
   var LOW_SCORE = 0.2; // これより低いと「撮り直し」をすすめる
   var cfg = window.HANA_CONFIG || {};
   // 住所が無い時と、?demo を付けて開いた時は「お試し表示」
   var DEMO = !cfg.apiUrl || /[?&]demo\b/.test(location.search);
 
   var COLORS = { bg: "#f5efe3", ink: "#2b2620", sub: "#6f665a", line: "#e2d8c6", accent: "#8c3b4a", bar: "#c9a96b" };
-  var SERIF = '"Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif';
-  var SANS = '-apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif';
+  // Android は Noto 系、iPhone はヒラギノ系が代わりの字体になる
+  var SERIF = '"Shippori Mincho", "Hiragino Mincho ProN", "Noto Serif JP", "Noto Serif CJK JP", "Yu Mincho", serif';
+  var SANS = '-apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Noto Sans CJK JP", Roboto, sans-serif';
+  var CROP_MAX = 1500; // 切り出す写真の一辺（px）。5:7 の画像の写真と同じ
+  var MAX_ZOOM = 6;
 
   var $ = function (id) { return document.getElementById(id); };
-  var picker = $("picker"), result = $("result"), card = $("card"), photo = $("photo");
+  var picker = $("picker"), crop = $("crop"), result = $("result"), card = $("card"), photo = $("photo");
+  var frame = $("crop-frame"), cropCanvas = $("crop-canvas"), zoomRange = $("zoom");
   var statusEl = $("status"), cands = $("cands"), again = $("again"), make = $("make");
   var chooseTip = $("choose-tip"), cardImg = $("card-img"), shareTip = $("share-tip");
 
   // 今の写真・候補・えらんだ名前・できた画像
-  var state = { file: null, list: [], chosen: 0, cardFile: null, cardUrl: null };
+  // img: 読み込んだ写真、view: 枠の中の倍率と位置、square: 切り出した正方形の写真
+  var state = { img: null, view: null, size: 0, square: null, list: [], chosen: 0, cardFile: null, cardUrl: null };
 
   if (DEMO) $("demo-note").hidden = false;
 
@@ -30,9 +34,12 @@
   make.addEventListener("click", onMake);
   $("share").addEventListener("click", onShare);
   $("back").addEventListener("click", function () { show(result); });
+  $("crop-ok").addEventListener("click", onCropOk);
+  $("crop-cancel").addEventListener("click", reset);
 
   function show(section) {
     picker.hidden = section !== picker;
+    crop.hidden = section !== crop;
     result.hidden = section !== result;
     card.hidden = section !== card;
     window.scrollTo(0, 0);
@@ -49,7 +56,9 @@
     if (photo.src) URL.revokeObjectURL(photo.src);
     photo.removeAttribute("src");
     clearCard();
-    state.file = null;
+    if (state.img && state.img.close) state.img.close();
+    state.img = null;
+    state.square = null;
     state.list = [];
     show(picker);
   }
@@ -67,16 +76,38 @@
     statusEl.classList.toggle("error", !!isError);
   }
 
+  // 写真をえらんだら、まず枠におさめる画面へ
   async function run(file) {
-    state.file = file;
+    try {
+      var img = await decode(file);
+      if (state.img && state.img.close) state.img.close();
+      state.img = img;
+      show(crop);
+      setupView();
+    } catch (err) {
+      show(result);
+      cands.innerHTML = "";
+      make.hidden = true;
+      chooseTip.hidden = true;
+      photo.removeAttribute("src");
+      setStatus(messageFor(err), true);
+      again.hidden = false;
+    }
+  }
+
+  // 「この範囲で調べる」: 枠の中を切り出して、名前を調べる
+  async function onCropOk() {
+    if (!state.img) return;
+    state.square = cropSquare();
     show(result);
     again.hidden = true;
     make.hidden = true;
     chooseTip.hidden = true;
     cands.innerHTML = "";
-    setStatus("写真を準備しています…");
+    clearCard();
     try {
-      var blob = await shrink(file, MAX_SIDE);
+      var blob = await toBlob(state.square, 0.88);
+      if (photo.src) URL.revokeObjectURL(photo.src);
       photo.src = URL.createObjectURL(blob);
       setStatus("名前を調べています…");
       var data = DEMO ? await demoIdentify() : await identify(blob);
@@ -87,6 +118,137 @@
     again.hidden = false;
   }
 
+  // ---- 枠の中で、写真を拡大・縮小・移動する ----
+
+  var pointers = new Map(); // 画面に触れている指（マウス）
+  var last = null; // 前回の指の位置（1本なら位置、2本なら真ん中と間の長さ）
+
+  function setupView() {
+    var rect = frame.getBoundingClientRect();
+    state.size = rect.width;
+    var dpr = Math.min(window.devicePixelRatio || 1, 3);
+    cropCanvas.width = Math.round(rect.width * dpr);
+    cropCanvas.height = Math.round(rect.width * dpr);
+    state.view = H.initialView(state.img.width, state.img.height, state.size);
+    drawView();
+  }
+
+  function setView(v) {
+    state.view = H.clampView(v, state.img.width, state.img.height, state.size, MAX_ZOOM);
+    drawView();
+  }
+
+  function drawView() {
+    var ctx = cropCanvas.getContext("2d");
+    var k = cropCanvas.width / state.size;
+    var v = state.view, img = state.img;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = "#2b2620";
+    ctx.fillRect(0, 0, cropCanvas.width, cropCanvas.height);
+    ctx.imageSmoothingQuality = "high";
+    ctx.setTransform(k, 0, 0, k, 0, 0);
+    ctx.drawImage(img, v.x, v.y, img.width * v.scale, img.height * v.scale);
+    // つまみの位置を今の倍率に合わせる
+    var min = H.coverScale(img.width, img.height, state.size);
+    zoomRange.value = String(Math.round(1000 * Math.log(v.scale / min) / Math.log(MAX_ZOOM)));
+  }
+
+  function zoomBy(factor, px, py) {
+    var v = state.view;
+    if (px == null) { px = state.size / 2; py = state.size / 2; }
+    state.view = H.zoomAt(v, factor, px, py, state.img.width, state.img.height, state.size, MAX_ZOOM);
+    drawView();
+  }
+
+  function localPoint(e) {
+    var r = frame.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+
+  function gesture() {
+    var pts = Array.from(pointers.values());
+    if (pts.length >= 2) {
+      var a = pts[0], b = pts[1];
+      return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, d: Math.hypot(a.x - b.x, a.y - b.y) };
+    }
+    return pts.length ? { x: pts[0].x, y: pts[0].y, d: 0 } : null;
+  }
+
+  frame.addEventListener("pointerdown", function (e) {
+    if (!state.img) return;
+    frame.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, localPoint(e));
+    last = gesture();
+    e.preventDefault();
+  });
+  frame.addEventListener("pointermove", function (e) {
+    if (!pointers.has(e.pointerId) || !state.img) return;
+    pointers.set(e.pointerId, localPoint(e));
+    var g = gesture();
+    if (last && g) {
+      var v = state.view;
+      var moved = { scale: v.scale, x: v.x + (g.x - last.x), y: v.y + (g.y - last.y) };
+      if (g.d && last.d) {
+        // 2本の指: 真ん中を中心に拡大・縮小しながら動かす
+        state.view = H.zoomAt(moved, g.d / last.d, g.x, g.y, state.img.width, state.img.height, state.size, MAX_ZOOM);
+        drawView();
+      } else {
+        setView(moved);
+      }
+    }
+    last = g;
+    e.preventDefault();
+  });
+  function endPointer(e) {
+    pointers.delete(e.pointerId);
+    last = gesture();
+  }
+  frame.addEventListener("pointerup", endPointer);
+  frame.addEventListener("pointercancel", endPointer);
+  // パソコンのマウスのホイール
+  frame.addEventListener("wheel", function (e) {
+    if (!state.img) return;
+    e.preventDefault();
+    var p = localPoint(e);
+    zoomBy(Math.exp(-e.deltaY * 0.002), p.x, p.y);
+  }, { passive: false });
+  // iPhone の Safari で、ページ全体が拡大されるのを防ぐ
+  frame.addEventListener("gesturestart", function (e) { e.preventDefault(); });
+
+  zoomRange.addEventListener("input", function () {
+    if (!state.img) return;
+    var min = H.coverScale(state.img.width, state.img.height, state.size);
+    var target = min * Math.pow(MAX_ZOOM, Number(zoomRange.value) / 1000);
+    zoomBy(target / state.view.scale);
+  });
+  $("zoom-in").addEventListener("click", function () { if (state.img) zoomBy(1.25); });
+  $("zoom-out").addEventListener("click", function () { if (state.img) zoomBy(0.8); });
+
+  window.addEventListener("resize", function () {
+    if (crop.hidden || !state.img) return;
+    // 画面の向きが変わった時は、今見えている範囲を保って描き直す
+    var r = H.cropRect(state.view, state.size);
+    var rect = frame.getBoundingClientRect();
+    if (!rect.width || rect.width === state.size) return;
+    state.size = rect.width;
+    var dpr = Math.min(window.devicePixelRatio || 1, 3);
+    cropCanvas.width = cropCanvas.height = Math.round(rect.width * dpr);
+    var scale = state.size / r.size;
+    setView({ scale: scale, x: -r.sx * scale, y: -r.sy * scale });
+  });
+
+  // 枠の中に見えている範囲を、元の写真の解像度で切り出す（一辺は最大 CROP_MAX）
+  function cropSquare() {
+    var r = H.cropRect(state.view, state.size);
+    var out = Math.max(1, Math.round(Math.min(CROP_MAX, r.size)));
+    var c = document.createElement("canvas");
+    c.width = c.height = out;
+    var ctx = c.getContext("2d");
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(state.img, r.sx, r.sy, r.size, r.size, 0, 0, out, out);
+    return c;
+  }
+
   // 写真を読み込む（スマホの写真の向きを直す）
   async function decode(file) {
     try {
@@ -94,19 +256,6 @@
     } catch (e) {
       return loadImage(file);
     }
-  }
-
-  // 写真を JPEG にして小さくする（位置情報などは消える）
-  async function shrink(file, maxSide) {
-    var src = await decode(file);
-    var w = src.width, h = src.height;
-    var k = Math.min(1, maxSide / Math.max(w, h));
-    var canvas = document.createElement("canvas");
-    canvas.width = Math.round(w * k);
-    canvas.height = Math.round(h * k);
-    canvas.getContext("2d").drawImage(src, 0, 0, canvas.width, canvas.height);
-    if (src.close) src.close();
-    return toBlob(canvas, 0.85);
   }
 
   function toBlob(canvas, quality) {
@@ -239,13 +388,13 @@
 
   async function onMake() {
     var c = state.list[state.chosen];
-    if (!c || !state.file) return;
+    if (!c || !state.square) return;
     make.disabled = true;
     var label = make.textContent;
     make.textContent = "画像を作っています…";
     try {
       clearCard();
-      var blob = await drawCard(state.file, c);
+      var blob = await drawCard(state.square, c);
       var name = H.displayName(c).replace(/[\\/:*?"<>|\s]+/g, "_");
       state.cardFile = new File([blob], "hana-shirabe_" + name + ".jpg", { type: "image/jpeg" });
       state.cardUrl = URL.createObjectURL(blob);
@@ -282,7 +431,8 @@
     } catch (e) { /* 代わりの明朝体で描く */ }
   }
 
-  async function drawCard(file, c) {
+  // 5:7 の画像: 上に花の写真（左右と上は余白なし）、下の帯に名前・確からしさ・出典
+  async function drawCard(square, c) {
     var C = H.CARD;
     var lines = H.cardLines(c);
     await loadFonts(lines.name + lines.sub + lines.score + lines.source + lines.site);
@@ -294,50 +444,42 @@
     ctx.fillStyle = COLORS.bg;
     ctx.fillRect(0, 0, C.width, C.height);
 
-    // 花の写真（真ん中の正方形）
-    var src = await decode(file);
-    var sq = H.centerSquare(src.width, src.height);
-    ctx.save();
-    roundRect(ctx, C.margin, C.margin, C.photo, C.photo, 28);
-    ctx.clip();
     ctx.imageSmoothingQuality = "high";
-    ctx.drawImage(src, sq.sx, sq.sy, sq.size, sq.size, C.margin, C.margin, C.photo, C.photo);
-    ctx.restore();
-    if (src.close) src.close();
+    ctx.drawImage(square, 0, 0, square.width, square.height, 0, 0, C.photo, C.photo);
 
-    var x = C.margin, w = C.photo, top = C.margin + C.photo;
+    var x = C.margin, w = C.width - C.margin * 2, top = C.photo;
     ctx.textBaseline = "alphabetic";
     ctx.textAlign = "left";
 
     // 名前
     ctx.fillStyle = COLORS.ink;
     fitFont(ctx, lines.name, "700", 128, 64, SERIF, w);
-    ctx.fillText(lines.name, x, top + 190);
+    ctx.fillText(lines.name, x, top + 165);
 
     // 英名・学名
     if (lines.sub) {
       ctx.fillStyle = COLORS.sub;
       fitFont(ctx, lines.sub, "500", 44, 28, SERIF, w);
-      ctx.fillText(lines.sub, x, top + 275);
+      ctx.fillText(lines.sub, x, top + 245);
     }
 
     // 確からしさ（文字と棒）
     ctx.fillStyle = COLORS.accent;
     ctx.font = "600 48px " + SANS;
-    ctx.fillText(lines.score, x, top + 375);
+    ctx.fillText(lines.score, x, top + 340);
     ctx.fillStyle = COLORS.line;
-    roundRect(ctx, x, top + 405, w, 12, 6);
+    roundRect(ctx, x, top + 370, w, 12, 6);
     ctx.fill();
     ctx.fillStyle = COLORS.bar;
-    roundRect(ctx, x, top + 405, Math.max(12, w * Math.min(1, c.score || 0)), 12, 6);
+    roundRect(ctx, x, top + 370, Math.max(12, w * Math.min(1, c.score || 0)), 12, 6);
     ctx.fill();
 
     // 出典
     ctx.fillStyle = COLORS.sub;
     fitFont(ctx, lines.source, "400", 32, 22, SANS, w);
-    ctx.fillText(lines.source, x, top + 510);
+    ctx.fillText(lines.source, x, top + 465);
     ctx.font = "400 32px " + SANS;
-    ctx.fillText(lines.site, x, top + 570);
+    ctx.fillText(lines.site, x, top + 520);
 
     return toBlob(canvas, 0.92);
   }
