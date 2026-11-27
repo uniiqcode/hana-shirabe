@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>花しらべ</title>
+<meta name="description" content="写真やカメラから、花の名前を調べます。">
+<meta name="theme-color" content="#f5efe3">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="花しらべ">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+<main class="app">
+  <header class="head">
+    <h1>花しらべ</h1>
+    <p class="lead">花の写真から、名前を調べます</p>
+  </header>
+
+  <section class="picker" id="picker">
+    <label class="btn btn-main">
+      <input type="file" accept="image/*" capture="environment" id="camera" hidden>
+      <span>撮って調べる</span>
+    </label>
+    <label class="btn btn-sub">
+      <input type="file" accept="image/*" id="library" hidden>
+      <span>写真から選ぶ</span>
+    </label>
+    <p class="tip">花を画面の真ん中に、大きく写すと当たりやすくなります。</p>
+  </section>
+
+  <section class="result" id="result" hidden>
+    <div class="photo"><img id="photo" alt="調べた写真"></div>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+    <ol class="cands" id="cands"></ol>
+    <button class="btn btn-sub" id="again" type="button" hidden>ほかの花を調べる</button>
+  </section>
+
+  <footer class="foot">
+    <p id="demo-note" class="demo" hidden>お試し表示です。写真はどこにも送らず、見本の答えを出しています。</p>
+    <p>写真は名前を調べるために <a href="https://my.plantnet.org/" rel="noopener">Pl@ntNet</a> に送ります。このページでは保存しません。</p>
+    <p>和名は Wikipedia の記事名から引いた参考です。</p>
+    <p class="credit">Powered by Pl@ntNet ・ <a href="https://uniiqcode.com/">uniiqcode</a></p>
+  </footer>
+</main>
+<script src="config.js?v=1"></script>
+<script src="app.js?v=1"></script>
+</body>
+</html>
