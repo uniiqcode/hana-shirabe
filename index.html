@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=1">
+<link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 <main class="app">
@@ -37,8 +37,18 @@
   <section class="result" id="result" hidden>
     <div class="photo"><img id="photo" alt="調べた写真"></div>
     <p class="status" id="status" role="status" aria-live="polite"></p>
-    <ol class="cands" id="cands"></ol>
+    <ol class="cands" id="cands" role="radiogroup" aria-label="花の名前の候補"></ol>
+    <p class="tip" id="choose-tip" hidden>名前をえらんで、画像を作れます</p>
+    <button class="btn btn-main" id="make" type="button" hidden>この名前で画像を作る</button>
     <button class="btn btn-sub" id="again" type="button" hidden>ほかの花を調べる</button>
+  </section>
+
+  <section class="card" id="card" hidden>
+    <img id="card-img" class="card-img" alt="花の名前の入った画像">
+    <button class="btn btn-main" id="share" type="button">写真に保存・共有する</button>
+    <p class="tip" id="share-tip" hidden>うまく保存できない時は、画像を長押しして「写真に追加」を選んでください。</p>
+    <button class="btn btn-sub" id="back" type="button">名前をえらびなおす</button>
+    <button class="btn btn-sub" id="again2" type="button">ほかの花を調べる</button>
   </section>
 
   <footer class="foot">
@@ -49,6 +59,7 @@
   </footer>
 </main>
 <script src="config.js?v=2"></script>
-<script src="app.js?v=1"></script>
+<script src="core.js?v=1"></script>
+<script src="app.js?v=2"></script>
 </body>
 </html>
