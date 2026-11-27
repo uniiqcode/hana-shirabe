@@ -18,6 +18,6 @@
 | `config.js` | 中継の住所。空だと「お試し表示」 |
 | `worker/worker.js` | 中継（Cloudflare Workers）。Pl@ntNet に問い合わせ、Wikidata で和名を引く |
 | `tests/` | ネットにつながないテスト（`npm test`） |
-| `icons/`・`manifest.webmanifest` | ホーム画面のアイコン（`node scripts/make-icons.cjs` で `icon.svg` から作る） |
+| `icons/`・`manifest.webmanifest` | アイコン一式（`node scripts/make-icons.cjs` で作る）。`icon.svg`＝ホーム画面（名札の付いた花）、`favicon.svg`＝タブ用の簡略版、`ogp.html`→`ogp.png`＝SNS で共有した時のバナー 1200×630 |
 
 元になった仕組みは niisan.tv の花のデータベース（`uniiqcode/niisan-tv` の `backend/uniiqcode/identify_flowers.py`）。

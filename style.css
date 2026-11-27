@@ -51,6 +51,17 @@ body {
 .btn:active { opacity: 0.8; }
 .tip { color: var(--sub); font-size: 0.85rem; margin: 4px 0 0; text-align: center; }
 
+.about {
+  margin-top: 20px; padding: 16px 18px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  font-size: 0.9rem; color: var(--sub);
+}
+.about h2 {
+  font-family: "Shippori Mincho", serif; font-weight: 700;
+  font-size: 1.05rem; color: var(--ink); margin: 0 0 6px;
+}
+.about p { margin: 6px 0 0; }
+
 .result { display: flex; flex-direction: column; gap: 14px; }
 .photo {
   aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden;
